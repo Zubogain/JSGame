@@ -34,7 +34,6 @@ class Actor {
 	}
 
 	act() {
-
 	}
 
 	get type() {
@@ -86,43 +85,25 @@ class Actor {
 }
 
 class Level {
-	constructor(grid = null, actors = null) {
+	constructor(grid = [], actors = []) {
 		this.grid = grid;
 		this.actors = actors;
-		this.height = 0;
-		this.width = 0;
-		if(Array.isArray(grid)) {
-			for(let gridYX of grid) {
-				this.height += 1;
-				if(Array.isArray(gridYX)) {
-					if(this.width < gridYX.length) {
-						this.width = gridYX.length;
-					}
-				}
-			}
-		}
-		if(Array.isArray(actors)) {
-			actors.forEach(actor => {
-				if(actor.type === "player") {
-					this.player = actor;
-				}
-			});
-		}
+		this.height = grid.length;
+		this.width = Math.max(0, ...grid.map(item => item.length));
+		this.player = this.actors.find(actor => actor.type === "player");
 		this.status = null;
 		this.finishDelay = 1;
 	}
 
 	isFinished() {
-		return this.status !== null && this.finishDelay < 0 ? true: false;
+		return this.status !== null && this.finishDelay < 0;
 	}
 
 	actorAt(actor) {
 		if(!(actor instanceof Actor)) {
 			throw new Error("Переданный аргумент не является экземпляром класса Actor");
 		}
-		if(Array.isArray(this.actors)) {
-			return this.actors.find((el) => el.isIntersect(actor));
-		}
+		return this.actors.find(selfActor => selfActor.isIntersect(actor));
 	}
 
 	obstacleAt(position, size) {
@@ -141,6 +122,7 @@ class Level {
 		if(bottom > this.height) {
 			return "lava";
 		}
+
 		for (let horizontal = left; horizontal < right; horizontal++) {
       		for (let vertical = top; vertical < bottom; vertical++) {
         		let cell = this.grid[vertical][horizontal];
@@ -155,26 +137,17 @@ class Level {
 		this.actors.forEach((el, index) => el === actor && this.actors.splice(index, 1));
 	}
 
-	noMoreActors(movingObjectType) {
-		if(Array.isArray(this.actors)) {
-			return this.actors.reduce((memo, el) => {
-				if(el.type === movingObjectType) {
-					memo = false;
-					return memo;
-				}
-				return memo;
-			}, true);
-		}
-		return true;
+	noMoreActors(type) {
+		return !(this.actors.find(actor => actor.type === type));
 	}
 
 	playerTouched(type, actor) {
 		if(type === "lava" || type === "fireball") {
 			this.status = "lost";
 		}
-		if(type === "coin" && actor.type === "coin") {
-			this.actors.forEach((el, index) => el === actor && this.actors.splice(index, 1));
-			if(!(this.actors.filter(el => el.type === "coin" && el).length)) {
+		if(type === "coin") {
+			this.removeActor(actor);
+			if(this.noMoreActors("coin")) {
 				this.status = "won";
 			}
 		}
@@ -291,8 +264,7 @@ class FireRain extends Fireball {
 class Coin extends Actor {
 	constructor(pos) {
 		super(pos, new Vector(0.6, 0.6));
-		this.pos.x += 0.2;
-		this.pos.y += 0.1;
+		this.pos = this.pos.plus(new Vector(0.2, 0.1));
 		this.springSpeed = 8;
 		this.springDist = 0.07;
 		this.spring = Math.floor(Math.random() * (2 * Math.PI));
@@ -331,15 +303,15 @@ class Player extends Actor {
 	}
 }
 
-const actorDict = {
-  '@': Player,
-  'o': Coin,
-  'v': FireRain,
-  '|': VerticalFireball,
-  '=': HorizontalFireball,
-  '*': Fireball
-};
+// const actorDict = {
+//   '@': Player,
+//   'o': Coin,
+//   'v': FireRain,
+//   '|': VerticalFireball,
+//   '=': HorizontalFireball,
+//   '*': Fireball
+// };
 
-const parser = new LevelParser(actorDict);
+// const parser = new LevelParser(actorDict);
 
-loadLevels().then(levels => runGame(JSON.parse(levels), parser, DOMDisplay)).then(() => alert('Вы выиграли!'));
+// loadLevels().then(levels => runGame(JSON.parse(levels), parser, DOMDisplay)).then(() => alert('Вы выиграли!'));
