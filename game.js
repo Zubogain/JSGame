@@ -175,9 +175,6 @@ class LevelParser {
 	}
 
 	createGrid(arrayStrings) {
-		if(arrayStrings.length === 0) {
-			return [];
-		}
 		let result = [];
 		arrayStrings.forEach(el => {
 			let symbolArray = el.split("");
@@ -187,7 +184,7 @@ class LevelParser {
 	}
 
 	createActors(arrayStrings) {
-		if(arrayStrings.length === 0 || !(this.vocabulary)) {
+		if(!(this.vocabulary)) {
 			return [];
 		}
 		let actors = [];
@@ -224,8 +221,7 @@ class Fireball extends Actor {
 	}
 
 	handleObstacle() {
-		this.speed.x = -this.speed.x;
-		this.speed.y = -this.speed.y;
+		this.speed = this.speed.times(-1);
 	}
 
 	act(time, level) {
@@ -303,15 +299,15 @@ class Player extends Actor {
 	}
 }
 
-// const actorDict = {
-//   '@': Player,
-//   'o': Coin,
-//   'v': FireRain,
-//   '|': VerticalFireball,
-//   '=': HorizontalFireball,
-//   '*': Fireball
-// };
+const actorDict = {
+  '@': Player,
+  'o': Coin,
+  'v': FireRain,
+  '|': VerticalFireball,
+  '=': HorizontalFireball,
+  '*': Fireball
+};
 
-// const parser = new LevelParser(actorDict);
+const parser = new LevelParser(actorDict);
 
-// loadLevels().then(levels => runGame(JSON.parse(levels), parser, DOMDisplay)).then(() => alert('Вы выиграли!'));
+loadLevels().then(levels => runGame(JSON.parse(levels), parser, DOMDisplay)).then(() => alert('Вы выиграли!'));
